@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile - Travel Together{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="fas fa-user-edit"></i> Edit Profile</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col">
+                                <h5 class="text-primary border-bottom pb-2">Basic Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="first_name" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" 
+                                       value="{{ current_user.first_name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="last_name" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" 
+                                       value="{{ current_user.last_name }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="date_of_birth" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" 
+                                       value="{{ current_user.date_of_birth.strftime('%Y-%m-%d') if current_user.date_of_birth }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="location" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="location" name="location" 
+                                       value="{{ current_user.location or '' }}" placeholder="City, Country">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   value="{{ current_user.phone or '' }}" placeholder="+1234567890">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="bio" class="form-label">Bio</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="4" 
+                                      placeholder="Tell others about yourself, your travel experiences, and what kind of adventures you're looking for...">{{ current_user.bio or '' }}</textarea>
+                        </div>
+                        
+                        <!-- Profile Picture -->
+                        <div class="mb-4">
+                            <label for="profile_picture" class="form-label">Profile Picture</label>
+                            <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                            <div class="form-text">Choose a JPG, PNG or GIF image (max 5MB)</div>
+                            {% if current_user.profile_picture %}
+                            <div class="mt-2">
+                                <img src="{{ current_user.get_profile_picture_url() }}" alt="Current Profile Picture" 
+                                     class="rounded" style="width: 100px; height: 100px; object-fit: cover;">
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Travel Preferences -->
+                        <div class="row mb-4">
+                            <div class="col">
+                                <h5 class="text-primary border-bottom pb-2">Travel Preferences</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="travel_style" class="form-label">Travel Style</label>
+                                <select class="form-select" id="travel_style" name="travel_style">
+                                    <option value="">Select travel style</option>
+                                    <option value="Adventure" {{ 'selected' if current_user.travel_style == 'Adventure' }}>Adventure</option>
+                                    <option value="Luxury" {{ 'selected' if current_user.travel_style == 'Luxury' }}>Luxury</option>
+                                    <option value="Budget" {{ 'selected' if current_user.travel_style == 'Budget' }}>Budget</option>
+                                    <option value="Cultural" {{ 'selected' if current_user.travel_style == 'Cultural' }}>Cultural</option>
+                                    <option value="Backpacking" {{ 'selected' if current_user.travel_style == 'Backpacking' }}>Backpacking</option>
+                                    <option value="Family" {{ 'selected' if current_user.travel_style == 'Family' }}>Family</option>
+                                    <option value="Solo" {{ 'selected' if current_user.travel_style == 'Solo' }}>Solo</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="travel_experience" class="form-label">Travel Experience</label>
+                                <select class="form-select" id="travel_experience" name="travel_experience">
+                                    <option value="">Select experience level</option>
+                                    <option value="Beginner" {{ 'selected' if current_user.travel_experience == 'Beginner' }}>Beginner</option>
+                                    <option value="Intermediate" {{ 'selected' if current_user.travel_experience == 'Intermediate' }}>Intermediate</option>
+                                    <option value="Expert" {{ 'selected' if current_user.travel_experience == 'Expert' }}>Expert</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="languages_spoken" class="form-label">Languages Spoken</label>
+                            <input type="text" class="form-control" id="languages_spoken" name="languages_spoken" 
+                                   value="{{ current_user.languages_spoken or '' }}" 
+                                   placeholder="e.g., English (Native), Spanish (Conversational), French (Basic)">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="travel_interests" class="form-label">Travel Interests & Activities</label>
+                            <textarea class="form-control" id="travel_interests" name="travel_interests" rows="3" 
+                                      placeholder="e.g., Photography, Hiking, Food tours, Nightlife, Museums, Adventure sports...">{{ current_user.travel_interests or '' }}</textarea>
+                        </div>
+                        
+                        <!-- Submit Buttons -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <a href="{{ url_for('profile') }}" class="btn btn-secondary w-100">Cancel</a>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-save"></i> Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

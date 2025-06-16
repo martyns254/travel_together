@@ -1,0 +1,210 @@
+ {% extends "base.html" %}
+
+{% block title %}My Profile - Travel Together{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Profile Sidebar -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <!-- Profile Picture -->
+                    <div class="profile-picture-container mb-3">
+                        <img src="{{ current_user.get_profile_picture_url() }}" 
+                             alt="Profile Picture" 
+                             class="rounded-circle profile-picture"
+                             style="width: 150px; height: 150px; object-fit: cover;">
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-primary" onclick="$('#profile-picture-input').click()">
+                                <i class="fas fa-camera"></i> Change Photo
+                            </button>
+                            <input type="file" id="profile-picture-input" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+                    
+                    <h3>{{ current_user.first_name }} {{ current_user.last_name }}</h3>
+                    <p class="text-muted">@{{ current_user.username }}</p>
+                    
+                    {% if current_user.rating > 0 %}
+                    <div class="rating mb-2">
+                        {% for i in range(1, 6) %}
+                            {% if i <= current_user.rating %}
+                                <i class="fas fa-star text-warning"></i>
+                            {% else %}
+                                <i class="far fa-star text-muted"></i>
+                            {% endif %}
+                        {% endfor %}
+                        <span class="ms-2">{{ current_user.rating }}/5 ({{ current_user.total_reviews }} reviews)</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if current_user.location %}
+                    <p class="text-muted"><i class="fas fa-map-marker-alt"></i> {{ current_user.location }}</p>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('edit_profile') }}" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </a>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="card shadow mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Stats</h5>
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="border-end">
+                                <h4 class="text-primary">{{ user_groups|length }}</h4>
+                                <small class="text-muted">Groups Created</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border-end">
+                                <h4 class="text-success">{{ joined_groups|length }}</h4>
+                                <small class="text-muted">Groups Joined</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-info">{{ current_user.total_reviews }}</h4>
+                            <small class="text-muted">Reviews</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- About Section -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">About Me</h5>
+                    {% if current_user.bio %}
+                        <p>{{ current_user.bio }}</p>
+                    {% else %}
+                        <p class="text-muted">No bio added yet. <a href="{{ url_for('edit_profile') }}">Add one now</a></p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Travel Preferences -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Travel Preferences</h5>
+                    <div class="row">
+                        {% if current_user.travel_style %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Travel Style:</strong>
+                            <span class="badge bg-primary ms-2">{{ current_user.travel_style }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if current_user.travel_experience %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Experience Level:</strong>
+                            <span class="badge bg-info ms-2">{{ current_user.travel_experience }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if current_user.languages_spoken %}
+                        <div class="col-12 mb-3">
+                            <strong>Languages Spoken:</strong>
+                            <p>{{ current_user.languages_spoken }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if current_user.travel_interests %}
+                        <div class="col-12 mb-3">
+                            <strong>Travel Interests:</strong>
+                            <p>{{ current_user.travel_interests }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if not current_user.travel_style and not current_user.travel_experience %}
+                    <p class="text-muted">No travel preferences set. <a href="{{ url_for('edit_profile') }}">Add them now</a></p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Groups</h5>
+                    {% if user_groups %}
+                        <div class="row">
+                            {% for group in user_groups[:3] %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ group.title }}</h6>
+                                        <p class="card-text text-muted">
+                                            <i class="fas fa-map-marker-alt"></i> {{ group.destination }}
+                                        </p>
+                                        <p class="card-text">
+                                            <small class="text-muted">{{ group.start_date.strftime('%b %d, %Y') }}</small>
+                                        </p>
+                                        <a href="{{ url_for('view_group', group_id=group.id) }}" class="btn btn-sm btn-outline-primary">
+                                            View Group
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if user_groups|length > 3 %}
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">View All Groups</a>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted">No groups created yet. <a href="{{ url_for('create_group') }}">Create your first group</a></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('profile-picture-input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        fetch('/upload_avatar', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.querySelector('.profile-picture').src = data.new_url;
+                // Show success message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                alertDiv.innerHTML = `
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.row'));
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Upload failed');
+        });
+    }
+});
+</script>
+{% endblock %}

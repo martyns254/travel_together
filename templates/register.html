@@ -1,0 +1,475 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Travel Together{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+                        <h2 class="fw-bold">Join Travel Together</h2>
+                        <p class="text-muted">Create your account to start connecting with travelers</p>
+                    </div>
+                    
+                    <form method="POST" id="registerForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="first_name" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" required>
+                                <div class="invalid-feedback" id="first_name_error"></div>
+                                <div class="valid-feedback">Looks good!</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="last_name" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" required>
+                                <div class="invalid-feedback" id="last_name_error"></div>
+                                <div class="valid-feedback">Looks good!</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                            <div class="invalid-feedback" id="username_error"></div>
+                            <div class="valid-feedback">Username is available!</div>
+                            <div class="form-text">
+                                <small>
+                                    <i class="fas fa-info-circle"></i>
+                                    3-20 characters, letters and numbers only, must start with a letter
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                            <div class="invalid-feedback" id="email_error"></div>
+                            <div class="valid-feedback">Email is available!</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" name="password" required minlength="8">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye" id="passwordIcon"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback" id="password_error"></div>
+                            <div class="valid-feedback">Strong password!</div>
+                            
+                            <!-- Password strength indicator -->
+                            <div class="mt-2">
+                                <div class="password-requirements">
+                                    <div class="d-flex flex-wrap gap-2 mt-2">
+                                        <small class="badge bg-light text-dark" id="req-length">
+                                            <i class="fas fa-times text-danger"></i> 8+ characters
+                                        </small>
+                                        <small class="badge bg-light text-dark" id="req-lowercase">
+                                            <i class="fas fa-times text-danger"></i> Lowercase
+                                        </small>
+                                        <small class="badge bg-light text-dark" id="req-uppercase">
+                                            <i class="fas fa-times text-danger"></i> Uppercase
+                                        </small>
+                                        <small class="badge bg-light text-dark" id="req-number">
+                                            <i class="fas fa-times text-danger"></i> Number
+                                        </small>
+                                        <small class="badge bg-light text-dark" id="req-special">
+                                            <i class="fas fa-times text-danger"></i> Special char
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                            <div class="invalid-feedback" id="confirm_password_error"></div>
+                            <div class="valid-feedback">Passwords match!</div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                <span id="submitText">Create Account</span>
+                                <span id="submitSpinner" class="spinner-border spinner-border-sm ms-2 d-none"></span>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <p class="mb-0">Already have an account? 
+                            <a href="{{ url_for('login') }}" class="text-primary text-decoration-none">Sign in</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('registerForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const submitSpinner = document.getElementById('submitSpinner');
+    
+    // Form fields
+    const firstName = document.getElementById('first_name');
+    const lastName = document.getElementById('last_name');
+    const username = document.getElementById('username');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirm_password');
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordIcon = document.getElementById('passwordIcon');
+    
+    // Validation state - start with form enabled
+    let validationState = {
+        firstName: false,
+        lastName: false,
+        username: false,
+        email: false,
+        password: false,
+        confirmPassword: false
+    };
+    
+    // Enable form by default and let server-side validation handle final checks
+    submitBtn.disabled = false;
+    
+    // Debounce function for API calls
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    // Password toggle
+    togglePassword.addEventListener('click', function() {
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        passwordIcon.classList.toggle('fa-eye');
+        passwordIcon.classList.toggle('fa-eye-slash');
+    });
+    
+    // Name validation
+    function validateName(input, fieldName) {
+        const value = input.value.trim();
+        const errorDiv = document.getElementById(input.id + '_error');
+        
+        if (!value) {
+            showError(input, errorDiv, `${fieldName} is required`);
+            return false;
+        }
+        
+        if (value.length < 2) {
+            showError(input, errorDiv, `${fieldName} must be at least 2 characters`);
+            return false;
+        }
+        
+        if (value.length > 50) {
+            showError(input, errorDiv, `${fieldName} must be no more than 50 characters`);
+            return false;
+        }
+        
+        if (!/^[a-zA-Z\s\-']+$/.test(value)) {
+            showError(input, errorDiv, `${fieldName} can only contain letters, spaces, hyphens, and apostrophes`);
+            return false;
+        }
+        
+        if (/^[\s\-']|[\s\-']$/.test(value)) {
+            showError(input, errorDiv, `${fieldName} cannot start or end with spaces, hyphens, or apostrophes`);
+            return false;
+        }
+        
+        if (/[\s\-']{2,}/.test(value)) {
+            showError(input, errorDiv, `${fieldName} cannot have consecutive special characters`);
+            return false;
+        }
+        
+        showSuccess(input, errorDiv);
+        return true;
+    }
+    
+    // Username validation
+    const validateUsernameAPI = debounce(async function(value) {
+        if (!value) return;
+        
+        try {
+            const response = await fetch('/api/validate/username', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username: value })
+            });
+            
+            const data = await response.json();
+            const errorDiv = document.getElementById('username_error');
+            
+            if (data.valid) {
+                showSuccess(username, errorDiv);
+                validationState.username = true;
+            } else {
+                showError(username, errorDiv, data.errors.join(', '));
+                validationState.username = false;
+            }
+            updateSubmitButton();
+        } catch (error) {
+            console.error('Username validation error:', error);
+            // Don't disable form if API fails
+            showNeutral(username, document.getElementById('username_error'));
+        }
+    }, 500);
+    
+    // Email validation
+    const validateEmailAPI = debounce(async function(value) {
+        if (!value) return;
+        
+        try {
+            const response = await fetch('/api/validate/email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: value })
+            });
+            
+            const data = await response.json();
+            const errorDiv = document.getElementById('email_error');
+            
+            if (data.valid) {
+                showSuccess(email, errorDiv);
+                validationState.email = true;
+            } else {
+                showError(email, errorDiv, data.errors.join(', '));
+                validationState.email = false;
+            }
+            updateSubmitButton();
+        } catch (error) {
+            console.error('Email validation error:', error);
+            // Don't disable form if API fails
+            showNeutral(email, document.getElementById('email_error'));
+        }
+    }, 500);
+    
+    // Password validation
+    function validatePassword() {
+        const value = password.value;
+        const errorDiv = document.getElementById('password_error');
+        
+        // Update requirement indicators
+        updateRequirement('req-length', value.length >= 8);
+        updateRequirement('req-lowercase', /[a-z]/.test(value));
+        updateRequirement('req-uppercase', /[A-Z]/.test(value));
+        updateRequirement('req-number', /\d/.test(value));
+        updateRequirement('req-special', /[!@#$%^&*(),.?":{}|<>]/.test(value));
+        
+        const errors = [];
+        
+        if (value.length < 8) errors.push('at least 8 characters');
+        if (!/[a-z]/.test(value)) errors.push('lowercase letter');
+        if (!/[A-Z]/.test(value)) errors.push('uppercase letter');
+        if (!/\d/.test(value)) errors.push('number');
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) errors.push('special character');
+        
+        // Check common passwords
+        const commonPasswords = ['password', '12345678', 'qwerty', 'abc123', 'password123'];
+        if (commonPasswords.includes(value.toLowerCase())) {
+            errors.push('password is too common');
+        }
+        
+        if (errors.length > 0) {
+            showError(password, errorDiv, `Password needs: ${errors.join(', ')}`);
+            validationState.password = false;
+        } else {
+            showSuccess(password, errorDiv);
+            validationState.password = true;
+        }
+        
+        // Re-validate confirm password if it has a value
+        if (confirmPassword.value) {
+            validateConfirmPassword();
+        }
+    }
+    
+    // Update requirement indicator
+    function updateRequirement(reqId, met) {
+        const element = document.getElementById(reqId);
+        const icon = element.querySelector('i');
+        
+        if (met) {
+            element.className = 'badge bg-success text-white';
+            icon.className = 'fas fa-check';
+        } else {
+            element.className = 'badge bg-light text-dark';
+            icon.className = 'fas fa-times text-danger';
+        }
+    }
+    
+    // Confirm password validation
+    function validateConfirmPassword() {
+        const value = confirmPassword.value;
+        const errorDiv = document.getElementById('confirm_password_error');
+        
+        if (!value) {
+            showError(confirmPassword, errorDiv, 'Please confirm your password');
+            validationState.confirmPassword = false;
+        } else if (value !== password.value) {
+            showError(confirmPassword, errorDiv, 'Passwords do not match');
+            validationState.confirmPassword = false;
+        } else {
+            showSuccess(confirmPassword, errorDiv);
+            validationState.confirmPassword = true;
+        }
+    }
+    
+    // Show error state
+    function showError(input, errorDiv, message) {
+        input.classList.remove('is-valid');
+        input.classList.add('is-invalid');
+        errorDiv.textContent = message;
+    }
+    
+    // Show success state
+    function showSuccess(input, errorDiv) {
+        input.classList.remove('is-invalid');
+        input.classList.add('is-valid');
+        errorDiv.textContent = '';
+    }
+    
+    // Show neutral state (when API fails)
+    function showNeutral(input, errorDiv) {
+        input.classList.remove('is-invalid', 'is-valid');
+        errorDiv.textContent = '';
+    }
+    
+    // Update submit button state - be more lenient
+    function updateSubmitButton() {
+        // Check if required fields have values
+        const hasRequiredFields = firstName.value.trim() && 
+                                 lastName.value.trim() && 
+                                 username.value.trim() && 
+                                 email.value.trim() && 
+                                 password.value && 
+                                 confirmPassword.value;
+        
+        // Enable if all fields have values, let server handle final validation
+        submitBtn.disabled = !hasRequiredFields;
+        
+        if (hasRequiredFields) {
+            submitBtn.classList.remove('btn-secondary');
+            submitBtn.classList.add('btn-primary');
+        } else {
+            submitBtn.classList.remove('btn-primary');
+            submitBtn.classList.add('btn-secondary');
+        }
+    }
+    
+    // Event listeners - simplified to just check for content
+    firstName.addEventListener('input', function() {
+        if (this.value.trim()) {
+            validateName(this, 'First name');
+        }
+        updateSubmitButton();
+    });
+    
+    lastName.addEventListener('input', function() {
+        if (this.value.trim()) {
+            validateName(this, 'Last name');
+        }
+        updateSubmitButton();
+    });
+    
+    username.addEventListener('input', function() {
+        const value = this.value.trim();
+        
+        // Basic validation first
+        if (!value) {
+            showNeutral(this, document.getElementById('username_error'));
+            updateSubmitButton();
+            return;
+        }
+        
+        if (value.length < 3 || value.length > 20) {
+            showError(this, document.getElementById('username_error'), 'Username must be 3-20 characters');
+            updateSubmitButton();
+            return;
+        }
+        
+        if (!/^[a-zA-Z0-9_]+$/.test(value)) {
+            showError(this, document.getElementById('username_error'), 'Username can only contain letters, numbers, and underscores');
+            updateSubmitButton();
+            return;
+        }
+        
+        if (!value[0].match(/[a-zA-Z]/)) {
+            showError(this, document.getElementById('username_error'), 'Username must start with a letter');
+            updateSubmitButton();
+            return;
+        }
+        
+        // If basic validation passes, check with API
+        validateUsernameAPI(value);
+        updateSubmitButton();
+    });
+    
+    email.addEventListener('input', function() {
+        const value = this.value.trim();
+        
+        if (!value) {
+            showNeutral(this, document.getElementById('email_error'));
+            updateSubmitButton();
+            return;
+        }
+        
+        // Basic email format check
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailPattern.test(value)) {
+            showError(this, document.getElementById('email_error'), 'Please enter a valid email address');
+            updateSubmitButton();
+            return;
+        }
+        
+        // Check availability with API
+        validateEmailAPI(value);
+        updateSubmitButton();
+    });
+    
+    password.addEventListener('input', function() {
+        validatePassword();
+        updateSubmitButton();
+    });
+    
+    confirmPassword.addEventListener('input', function() {
+        validateConfirmPassword();
+        updateSubmitButton();
+    });
+    
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        // Show loading state
+        submitBtn.disabled = true;
+        submitText.textContent = 'Creating Account...';
+        submitSpinner.classList.remove('d-none');
+        
+        // Don't prevent default - let the form submit normally
+    });
+    
+    // Initialize submit button state
+    updateSubmitButton();
+});
+</script>
+{% endblock %}

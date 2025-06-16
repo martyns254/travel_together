@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Groups - Travel Together{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5 fw-bold">Browse Travel Groups</h1>
+            <p class="lead text-muted">Discover amazing travel opportunities and join fellow adventurers</p>
+        </div>
+        {% if current_user.is_authenticated %}
+        <div class="col-auto">
+            <a href="{{ url_for('create_group') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus"></i> Create Group
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Groups Grid -->
+    <div class="row g-4" id="groupsContainer">
+        {% if groups %}
+            {% for group in groups %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 shadow-sm group-item">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title">{{ group.title }}</h5>
+                            {% if group.member_count is defined %}
+                                <span class="badge bg-primary">{{ group.member_count }}/{{ group.max_members }}</span>
+                            {% else %}
+                                <span class="badge bg-primary">0/{{ group.max_members }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <p class="card-text text-muted mb-2">
+                            <i class="fas fa-map-marker-alt text-primary"></i> {{ group.destination }}
+                        </p>
+                        
+                        <p class="card-text mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar text-primary"></i> 
+                                {{ group.start_date.strftime('%b %d') }} - {{ group.end_date.strftime('%b %d, %Y') }}
+                            </small>
+                        </p>
+                        
+                        <p class="card-text">{{ group.description[:120] }}{% if group.description|length > 120 %}...{% endif %}</p>
+                        
+                        {% if group.budget_min and group.budget_max %}
+                        <p class="card-text mb-2">
+                            <small class="text-success">
+                                <i class="fas fa-dollar-sign text-primary"></i> 
+                                ${{ group.budget_min }} - ${{ group.budget_max }}
+                            </small>
+                        </p>
+                        {% endif %}
+                        
+                        {% if group.interests %}
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="fas fa-heart text-primary"></i> 
+                                {{ group.interests[:50] }}{% if group.interests|length > 50 %}...{% endif %}
+                            </small>
+                        </p>
+                        {% endif %}
+                        
+                        <div class="mb-2">
+                            {% if group.creator %}
+                                <small class="text-muted">
+                                    Created by {{ group.creator.first_name }} {{ group.creator.last_name }}
+                                </small>
+                            {% else %}
+                                <small class="text-muted">Group available</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer bg-transparent">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ url_for('view_group', group_id=group.id) }}" class="btn btn-primary">
+                                View Details
+                            </a>
+                            <small class="text-muted">
+                                {% if group.member_count is defined %}
+                                    {% set available_spots = group.max_members - group.member_count %}
+                                    {% if available_spots > 0 %}
+                                        {{ available_spots }} spot{% if available_spots != 1 %}s{% endif %} left
+                                    {% else %}
+                                        <span class="text-warning">Full</span>
+                                    {% endif %}
+                                {% else %}
+                                    {{ group.max_members }} spots
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-4x text-muted mb-3"></i>
+                <h3 class="text-muted">No travel groups found</h3>
+                <p class="text-muted">Be the first to create a travel group and start your adventure!</p>
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('create_group') }}" class="btn btn-primary btn-lg">Create First Group</a>
+                {% else %}
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Sign Up to Create Groups</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

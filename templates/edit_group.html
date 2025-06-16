@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Group - Travel Together{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-white">
+                    <h2 class="mb-0"><i class="fas fa-edit"></i> Edit Travel Group</h2>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label for="title" class="form-label fw-bold">Group Title</label>
+                            <input type="text" class="form-control" id="title" name="title" required 
+                                   value="{{ group.title }}" placeholder="e.g., Backpacking through Europe">
+                            <div class="form-text">Give your group an exciting and descriptive title</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="description" class="form-label fw-bold">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" required
+                                      placeholder="Describe your travel plans, what you're looking for in travel companions, and what makes this trip special...">{{ group.description }}</textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="destination" class="form-label fw-bold">Destination</label>
+                                <input type="text" class="form-control" id="destination" name="destination" required
+                                       value="{{ group.destination }}" placeholder="e.g., Paris, France">
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label for="max_members" class="form-label fw-bold">Maximum Members</label>
+                                <select class="form-select" id="max_members" name="max_members" required>
+                                    <option value="">Select max members</option>
+                                    <option value="2" {% if group.max_members == 2 %}selected{% endif %}>2 members</option>
+                                    <option value="3" {% if group.max_members == 3 %}selected{% endif %}>3 members</option>
+                                    <option value="4" {% if group.max_members == 4 %}selected{% endif %}>4 members</option>
+                                    <option value="5" {% if group.max_members == 5 %}selected{% endif %}>5 members</option>
+                                    <option value="6" {% if group.max_members == 6 %}selected{% endif %}>6 members</option>
+                                    <option value="8" {% if group.max_members == 8 %}selected{% endif %}>8 members</option>
+                                    <option value="10" {% if group.max_members == 10 %}selected{% endif %}>10 members</option>
+                                    <option value="15" {% if group.max_members == 15 %}selected{% endif %}>15 members</option>
+                                    <option value="20" {% if group.max_members == 20 %}selected{% endif %}>20 members</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="start_date" class="form-label fw-bold">Start Date</label>
+                                <input type="date" class="form-control" id="start_date" name="start_date" required
+                                       value="{{ group.start_date.strftime('%Y-%m-%d') }}">
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label for="end_date" class="form-label fw-bold">End Date</label>
+                                <input type="date" class="form-control" id="end_date" name="end_date" required
+                                       value="{{ group.end_date.strftime('%Y-%m-%d') }}">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Budget Range (USD)</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="budget_min" class="form-label">Minimum Budget</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="budget_min" name="budget_min" 
+                                               placeholder="500" step="50" 
+                                               value="{% if group.budget_min %}{{ group.budget_min|int }}{% endif %}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="budget_max" class="form-label">Maximum Budget</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="budget_max" name="budget_max" 
+                                               placeholder="1500" step="50"
+                                               value="{% if group.budget_max %}{{ group.budget_max|int }}{% endif %}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-text">Optional: Help others understand the expected cost range</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="interests" class="form-label fw-bold">Travel Interests & Activities</label>
+                            <textarea class="form-control" id="interests" name="interests" rows="3"
+                                      placeholder="e.g., Photography, Hiking, Food tours, Nightlife, Museums, Adventure sports...">{% if group.interests %}{{ group.interests }}{% endif %}</textarea>
+                            <div class="form-text">What activities and interests will this trip focus on?</div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Note:</strong> You cannot reduce the maximum members below the current number of members in your group.
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <a href="{{ url_for('view_group', group_id=group.id) }}" class="btn btn-secondary btn-lg w-100">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-warning btn-lg w-100">
+                                    <i class="fas fa-save"></i> Update Group
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const startDate = document.getElementById('start_date');
+    const endDate = document.getElementById('end_date');
+    const budgetMin = document.getElementById('budget_min');
+    const budgetMax = document.getElementById('budget_max');
+    
+    // Set minimum date to today for future edits
+    const today = new Date().toISOString().split('T')[0];
+    startDate.min = today;
+    
+    // Update end date minimum when start date changes
+    startDate.addEventListener('change', function() {
+        endDate.min = this.value;
+        if (endDate.value && endDate.value < this.value) {
+            endDate.value = this.value;
+        }
+    });
+    
+    // Set initial end date minimum based on current start date
+    if (startDate.value) {
+        endDate.min = startDate.value;
+    }
+    
+    // Validate budget range
+    function validateBudget() {
+        if (budgetMin.value && budgetMax.value) {
+            if (parseFloat(budgetMax.value) < parseFloat(budgetMin.value)) {
+                budgetMax.setCustomValidity('Maximum budget must be greater than minimum budget');
+            } else {
+                budgetMax.setCustomValidity('');
+            }
+        } else {
+            budgetMax.setCustomValidity('');
+        }
+    }
+    
+    budgetMin.addEventListener('change', validateBudget);
+    budgetMax.addEventListener('change', validateBudget);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Reply to Message - Travel Together{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('messages') }}">Messages</a></li>
+                    <li class="breadcrumb-item active">Reply</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h2 class="mb-0">
+                        <i class="fas fa-reply"></i> Reply to Message
+                    </h2>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Original Message -->
+                    <div class="alert alert-light border">
+                        <h6 class="fw-bold mb-2">
+                            <i class="fas fa-quote-left"></i> Original Message
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                         style="width: 40px; height: 40px;">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div>
+                                        <strong>{{ original_message.sender.first_name }} {{ original_message.sender.last_name }}</strong>
+                                        <small class="text-muted d-block">@{{ original_message.sender.username }}</small>
+                                    </div>
+                                </div>
+                                <h6 class="fw-bold">{{ original_message.subject }}</h6>
+                                <p class="mb-2">{{ original_message.message[:200] }}{% if original_message.message|length > 200 %}...{% endif %}</p>
+                                {% if original_message.group %}
+                                <small class="text-primary">
+                                    <i class="fas fa-map-marker-alt"></i> 
+                                    About: <a href="{{ url_for('view_group', group_id=original_message.group.id) }}" class="text-decoration-none">{{ original_message.group.title }}</a>
+                                </small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i> 
+                                    {{ original_message.sent_at.strftime('%b %d, %Y at %I:%M %p') }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reply Form -->
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label for="subject" class="form-label fw-bold">Reply Subject</label>
+                            <input type="text" class="form-control" id="subject" name="subject" required 
+                                   value="Re: {{ original_message.subject }}" placeholder="Re: {{ original_message.subject }}">
+                            <div class="form-text">Subject automatically prefixed with "Re:"</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="message" class="form-label fw-bold">Your Reply</label>
+                            <textarea class="form-control" id="message" name="message" rows="8" required
+                                      placeholder="Hi {{ original_message.sender.first_name }},&#10;&#10;Thanks for your message about {{ original_message.group.title if original_message.group else 'the trip' }}!&#10;&#10;"></textarea>
+                            <div class="form-text">Write your response to {{ original_message.sender.first_name }}</div>
+                        </div>
+
+                        <!-- Quick Reply Templates -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-muted">💬 Quick Reply Templates:</h6>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 suggestion-btn" 
+                                            data-text="Thanks for your interest! Here are more details about the trip...">
+                                        📋 Share Details
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 suggestion-btn" 
+                                            data-text="Great question! Let me clarify that for you...">
+                                        ❓ Answer Question
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 suggestion-btn" 
+                                            data-text="Thanks for reaching out! I'd be happy to help with any questions about the trip.">
+                                        👋 Friendly Response
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 suggestion-btn" 
+                                            data-text="Feel free to join the group! Looking forward to traveling together.">
+                                        🎉 Encourage Joining
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recipient Info -->
+                        <div class="alert alert-info">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <small class="text-muted">Replying to:</small>
+                                    <div class="fw-bold">{{ original_message.sender.first_name }} {{ original_message.sender.last_name }}</div>
+                                    <small class="text-muted">@{{ original_message.sender.username }}</small>
+                                </div>
+                                <div class="col-md-4 text-md-end">
+                                    {% if original_message.group %}
+                                    <small class="text-muted">About:</small>
+                                    <div class="fw-bold">{{ original_message.group.title }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <a href="{{ url_for('messages') }}" class="btn btn-secondary btn-lg w-100">
+                                    <i class="fas fa-arrow-left"></i> Back to Messages
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-success btn-lg w-100">
+                                    <i class="fas fa-reply"></i> Send Reply
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messageTextarea = document.getElementById('message');
+    const suggestionButtons = document.querySelectorAll('.suggestion-btn');
+    
+    suggestionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const suggestionText = this.getAttribute('data-text');
+            const currentMessage = messageTextarea.value;
+            
+            if (currentMessage.trim() === '') {
+                messageTextarea.value = suggestionText;
+            } else {
+                messageTextarea.value = currentMessage + '\n\n' + suggestionText;
+            }
+            
+            messageTextarea.focus();
+        });
+    });
+});
+</script>
+{% endblock %}

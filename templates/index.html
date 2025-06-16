@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Find Your Perfect Travel Companions</h1>
+                <p class="lead mb-4">Connect with like-minded travelers, share adventures, and split costs. Join travel groups or create your own!</p>
+                <div class="d-flex gap-3">
+                    {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">Get Started</a>
+                    {% endif %}
+                    <a href="{{ url_for('browse_groups') }}" class="btn btn-outline-light btn-lg">Browse Groups</a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="text-center">
+                    <i class="fas fa-users fa-10x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col">
+                <h2 class="display-5 fw-bold">Why Travel Together?</h2>
+                <p class="lead text-muted">Discover the benefits of group travel</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-dollar-sign fa-3x text-primary"></i>
+                        </div>
+                        <h4>Save Money</h4>
+                        <p class="text-muted">Split costs on accommodations, transportation, and activities. Travel more for less!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-heart fa-3x text-primary"></i>
+                        </div>
+                        <h4>Make Friends</h4>
+                        <p class="text-muted">Meet amazing people who share your passion for travel and adventure.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-shield-alt fa-3x text-primary"></i>
+                        </div>
+                        <h4>Travel Safely</h4>
+                        <p class="text-muted">Safety in numbers. Share experiences and look out for each other.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Groups Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col">
+                <h2 class="display-6 fw-bold">Recent Travel Groups</h2>
+                <p class="lead text-muted">Join exciting trips planned by fellow travelers</p>
+            </div>
+        </div>
+        
+        {% if groups and groups|length > 0 %}
+        <div class="row g-4">
+            {% for group in groups %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ group.title }}</h5>
+                        <p class="card-text text-muted">
+                            <i class="fas fa-map-marker-alt"></i> {{ group.destination }}
+                        </p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar"></i> 
+                                {{ group.start_date.strftime('%b %d') }} - {{ group.end_date.strftime('%b %d, %Y') }}
+                            </small>
+                        </p>
+                        <p class="card-text">{{ group.description[:100] }}{% if group.description|length > 100 %}...{% endif %}</p>
+                        
+                        {% if group.budget_min and group.budget_max %}
+                        <p class="card-text">
+                            <small class="text-success">
+                                <i class="fas fa-dollar-sign"></i> 
+                                ${{ group.budget_min }} - ${{ group.budget_max }}
+                            </small>
+                        </p>
+                        {% endif %}
+                        
+                        {% if group.creator %}
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="fas fa-user"></i> 
+                                Created by {{ group.creator.first_name }} {{ group.creator.last_name }}
+                            </small>
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ url_for('view_group', group_id=group.id) }}" class="btn btn-primary">View Details</a>
+                            <small class="text-muted">
+                                {% if group.member_count is defined %}
+                                    {{ group.member_count }}/{{ group.max_members }} members
+                                {% else %}
+                                    {{ group.max_members }} max
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-plane fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">No travel groups yet</h4>
+            <p class="text-muted">Be the first to create a travel group!</p>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('create_group') }}" class="btn btn-primary">Create First Group</a>
+            {% else %}
+            <a href="{{ url_for('register') }}" class="btn btn-primary">Sign Up to Create Groups</a>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        {% if groups and groups|length > 0 %}
+        <div class="text-center mt-4">
+            <a href="{{ url_for('browse_groups') }}" class="btn btn-outline-primary">View All Groups</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- CTA Section -->
+{% if not current_user.is_authenticated %}
+<section class="py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="display-6 fw-bold mb-3">Ready to Start Your Adventure?</h2>
+        <p class="lead mb-4">Join thousands of travelers who have found their perfect travel companions</p>
+        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">Sign Up Now</a>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

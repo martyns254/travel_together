@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Messages - Travel Together{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5 fw-bold">
+                <i class="fas fa-envelope"></i> Messages
+            </h1>
+            <p class="lead text-muted">Stay connected with fellow travelers</p>
+        </div>
+    </div>
+    
+    <!-- Message Tabs -->
+    <div class="row">
+        <div class="col">
+            <ul class="nav nav-tabs" id="messageTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="received-tab" data-bs-toggle="tab" data-bs-target="#received" type="button" role="tab">
+                        <i class="fas fa-inbox"></i> Received 
+                        <span class="badge bg-primary">{{ received_messages|length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="sent-tab" data-bs-toggle="tab" data-bs-target="#sent" type="button" role="tab">
+                        <i class="fas fa-paper-plane"></i> Sent 
+                        <span class="badge bg-secondary">{{ sent_messages|length }}</span>
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="messageTabContent">
+                <!-- Received Messages -->
+                <div class="tab-pane fade show active" id="received" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            {% if received_messages %}
+                                {% for message in received_messages %}
+                                <div class="message-item p-3 {% if not loop.last %}border-bottom{% endif %} {% if not message.is_read %}bg-light{% endif %}">
+                                    <div class="row align-items-start">
+                                        <div class="col-md-8">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                                     style="width: 40px; height: 40px;">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0">
+                                                        {{ message.sender.first_name }} {{ message.sender.last_name }}
+                                                        {% if not message.is_read %}
+                                                            <span class="badge bg-warning text-dark ms-2">New</span>
+                                                        {% endif %}
+                                                    </h6>
+                                                    <small class="text-muted">@{{ message.sender.username }}</small>
+                                                </div>
+                                            </div>
+                                            
+                                            <h6 class="fw-bold">{{ message.subject }}</h6>
+                                            <p class="text-muted mb-2">{{ message.message[:150] }}{% if message.message|length > 150 %}...{% endif %}</p>
+                                            
+                                            {% if message.group %}
+                                            <small class="text-primary">
+                                                <i class="fas fa-map-marker-alt"></i> 
+                                                About: <a href="{{ url_for('view_group', group_id=message.group.id) }}" class="text-decoration-none">{{ message.group.title }}</a>
+                                            </small>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4 text-md-end">
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock"></i> 
+                                                {{ message.sent_at.strftime('%b %d, %Y at %I:%M %p') }}
+                                            </small>
+                                            <div class="mt-2">
+                                                <button class="btn btn-sm btn-outline-primary toggle-message" 
+                                                        data-message-id="{{ message.id }}">
+                                                    <i class="fas fa-eye"></i> Read Full
+                                                </button>
+                                                <a href="{{ url_for('reply_message', message_id=message.id) }}" 
+                                                   class="btn btn-sm btn-outline-success">
+                                                    <i class="fas fa-reply"></i> Reply
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Full message (hidden by default) -->
+                                    <div class="full-message mt-3 d-none" id="message-{{ message.id }}">
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <h6>{{ message.subject }}</h6>
+                                                <p class="mb-0">{{ message.message|replace('\n', '<br>')|safe }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">No messages received yet</h5>
+                                    <p class="text-muted">Messages from other travelers will appear here</p>
+                                    <a href="{{ url_for('browse_groups') }}" class="btn btn-primary">
+                                        <i class="fas fa-search"></i> Browse Groups
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sent Messages -->
+                <div class="tab-pane fade" id="sent" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            {% if sent_messages %}
+                                {% for message in sent_messages %}
+                                <div class="message-item p-3 {% if not loop.last %}border-bottom{% endif %}">
+                                    <div class="row align-items-start">
+                                        <div class="col-md-8">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                                     style="width: 40px; height: 40px;">
+                                                    <i class="fas fa-paper-plane"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0">
+                                                        To: {{ message.recipient.first_name }} {{ message.recipient.last_name }}
+                                                    </h6>
+                                                    <small class="text-muted">@{{ message.recipient.username }}</small>
+                                                </div>
+                                            </div>
+                                            
+                                            <h6 class="fw-bold">{{ message.subject }}</h6>
+                                            <p class="text-muted mb-2">{{ message.message[:150] }}{% if message.message|length > 150 %}...{% endif %}</p>
+                                            
+                                            {% if message.group %}
+                                            <small class="text-primary">
+                                                <i class="fas fa-map-marker-alt"></i> 
+                                                About: <a href="{{ url_for('view_group', group_id=message.group.id) }}" class="text-decoration-none">{{ message.group.title }}</a>
+                                            </small>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4 text-md-end">
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock"></i> 
+                                                {{ message.sent_at.strftime('%b %d, %Y at %I:%M %p') }}
+                                            </small>
+                                            <div class="mt-2">
+                                                <button class="btn btn-sm btn-outline-primary toggle-message" 
+                                                        data-message-id="{{ message.id }}">
+                                                    <i class="fas fa-eye"></i> Read Full
+                                                </button>
+                                                <span class="badge bg-{% if message.is_read %}success{% else %}secondary{% endif %}">
+                                                    {% if message.is_read %}Read{% else %}Unread{% endif %}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Full message (hidden by default) -->
+                                    <div class="full-message mt-3 d-none" id="message-{{ message.id }}">
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <h6>{{ message.subject }}</h6>
+                                                <p class="mb-0">{{ message.message|replace('\n', '<br>')|safe }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="fas fa-paper-plane fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">No messages sent yet</h5>
+                                    <p class="text-muted">Start connecting with other travelers by sending messages</p>
+                                    <a href="{{ url_for('browse_groups') }}" class="btn btn-primary">
+                                        <i class="fas fa-search"></i> Find Groups to Contact
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle full message display
+    document.querySelectorAll('.toggle-message').forEach(button => {
+        button.addEventListener('click', function() {
+            const messageId = this.getAttribute('data-message-id');
+            const fullMessage = document.getElementById('message-' + messageId);
+            const icon = this.querySelector('i');
+            
+            if (fullMessage.classList.contains('d-none')) {
+                fullMessage.classList.remove('d-none');
+                icon.className = 'fas fa-eye-slash';
+                this.innerHTML = '<i class="fas fa-eye-slash"></i> Hide';
+            } else {
+                fullMessage.classList.add('d-none');
+                icon.className = 'fas fa-eye';
+                this.innerHTML = '<i class="fas fa-eye"></i> Read Full';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

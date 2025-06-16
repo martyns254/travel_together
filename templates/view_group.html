@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}{{ group.title }} - Travel Together{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('browse_groups') }}">Browse Groups</a></li>
+            <li class="breadcrumb-item active">{{ group.title }}</li>
+        </ol>
+    </nav>
+    
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="mb-0">{{ group.title }}</h1>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Basic Details -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-map-marker-alt text-primary"></i> Destination</h5>
+                            <p class="fs-5">{{ group.destination }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-calendar text-primary"></i> Travel Dates</h5>
+                            <p class="fs-5">{{ group.start_date.strftime('%B %d, %Y') }} - {{ group.end_date.strftime('%B %d, %Y') }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Group Size -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-users text-primary"></i> Group Size</h5>
+                            <p class="fs-5">{{ members|length }}/{{ group.max_members }} members</p>
+                            <div class="progress">
+                                {% set progress = ((members|length / group.max_members) * 100)|round %}
+                                <div class="progress">
+    <div class="progress-bar" role="progressbar" style="width: 50%"></div>
+</div>
+                            </div>
+                        </div>
+                        {% if group.budget_min and group.budget_max %}
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-dollar-sign text-primary"></i> Budget Range</h5>
+                            <p class="fs-5">${{ group.budget_min }} - ${{ group.budget_max }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <h5><i class="fas fa-info-circle text-primary"></i> About This Trip</h5>
+                        <p class="lead">{{ group.description }}</p>
+                    </div>
+                    
+                    <!-- Interests -->
+                    {% if group.interests %}
+                    <div class="mb-4">
+                        <h5><i class="fas fa-heart text-primary"></i> Travel Interests</h5>
+                        <p>{{ group.interests }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Group Creator -->
+                    <div class="mb-4">
+                        <h5><i class="fas fa-crown text-primary"></i> Group Creator</h5>
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 50px; height: 50px;">
+                                <i class="fas fa-user fa-lg"></i>
+                            </div>
+                            <div>
+                                {% if group.creator %}
+                                    <h6 class="mb-0">{{ group.creator.first_name }} {{ group.creator.last_name }}</h6>
+                                    <small class="text-muted">@{{ group.creator.username }}</small>
+                                {% else %}
+                                    <h6 class="mb-0">Group Creator</h6>
+                                    <small class="text-muted">Creator information unavailable</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Join Group Card -->
+            <div class="card shadow mb-4">
+                <div class="card-body text-center">
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.id == group.creator_id %}
+                            <h5 class="text-success mb-3">
+                                <i class="fas fa-crown"></i> You created this group
+                            </h5>
+                            <p class="text-muted">Manage your group and connect with members</p>
+                        {% elif is_member %}
+                            <h5 class="text-success mb-3">
+                                <i class="fas fa-check-circle"></i> You're a member!
+                            </h5>
+                            <p class="text-muted">You've successfully joined this group</p>
+                        {% else %}
+                            {% set available_spots = group.max_members - members|length %}
+                            {% if available_spots > 0 %}
+                                <h5 class="mb-3">Ready to join this adventure?</h5>
+                                <p class="text-muted mb-3">{{ available_spots }} spot{% if available_spots != 1 %}s{% endif %} remaining</p>
+                                <a href="{{ url_for('join_group', group_id=group.id) }}" class="btn btn-success btn-lg w-100">
+                                    <i class="fas fa-plus"></i> Join Group
+                                </a>
+                            {% else %}
+                                <h5 class="text-warning mb-3">
+                                    <i class="fas fa-exclamation-triangle"></i> Group Full
+                                </h5>
+                                <p class="text-muted">This group has reached its maximum capacity</p>
+                                <button class="btn btn-secondary btn-lg w-100" disabled>
+                                    No Spots Available
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                    {% else %}
+                        <h5 class="mb-3">Join this amazing trip!</h5>
+                        <p class="text-muted mb-3">Sign in to connect with this travel group</p>
+                        <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg w-100 mb-2">
+                            <i class="fas fa-sign-in-alt"></i> Sign In
+                        </a>
+                        <a href="{{ url_for('register') }}" class="btn btn-outline-primary w-100">
+                            New? Create Account
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Group Members -->
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-users"></i> Group Members 
+                        <span class="badge bg-primary">{{ members|length }}</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if members %}
+                        {% for member in members %}
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">
+                                    {{ member.first_name }} {{ member.last_name }}
+                                    {% if member.id == group.creator_id %}
+                                        <i class="fas fa-crown text-warning" title="Group Creator"></i>
+                                    {% endif %}
+                                </h6>
+                                <small class="text-muted">@{{ member.username }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-users fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">No members yet</p>
+                            <small class="text-muted">Be the first to join!</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Trip Details -->
+            <div class="card shadow mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Trip Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <small class="text-muted">Duration</small>
+                            <div class="fw-bold">
+                                {% set duration = (group.end_date - group.start_date).days + 1 %}
+                                {{ duration }} day{% if duration != 1 %}s{% endif %}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Created</small>
+                            <div class="fw-bold">{{ group.created_at.strftime('%b %d, %Y') }}</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Max Members</small>
+                            <div class="fw-bold">{{ group.max_members }}</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Available Spots</small>
+                            <div class="fw-bold text-success">{{ group.max_members - members|length }}</div>
+                        </div>
+                        {% if group.budget_min %}
+                        <div class="col-6">
+                            <small class="text-muted">Min Budget</small>
+                            <div class="fw-bold text-success">${{ group.budget_min }}</div>
+                        </div>
+                        {% endif %}
+                        {% if group.budget_max %}
+                        <div class="col-6">
+                            <small class="text-muted">Max Budget</small>
+                            <div class="fw-bold text-success">${{ group.budget_max }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Similar Groups -->
+            {% if similar_groups %}
+            <div class="card shadow mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-map-marked-alt"></i> Other Groups Visiting {{ group.destination }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for similar_group in similar_groups %}
+                    <div class="mb-3 pb-3 {% if not loop.last %}border-bottom{% endif %}">
+                        <h6 class="mb-1">
+                            <a href="{{ url_for('view_group', group_id=similar_group.id) }}" class="text-decoration-none">
+                                {{ similar_group.title }}
+                            </a>
+                        </h6>
+                        <small class="text-muted d-block">
+                            <i class="fas fa-calendar"></i> 
+                            {{ similar_group.start_date.strftime('%b %d') }} - {{ similar_group.end_date.strftime('%b %d, %Y') }}
+                        </small>
+                        {% if similar_group.creator %}
+                        <small class="text-muted d-block">
+                            <i class="fas fa-user"></i> 
+                            By {{ similar_group.creator.first_name }} {{ similar_group.creator.last_name }}
+                        </small>
+                        {% endif %}
+                        <small class="text-primary">
+                            <i class="fas fa-users"></i> 
+                            {{ similar_group.member_count }}/{{ similar_group.max_members }} members
+                        </small>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-lightbulb"></i> 
+                            Connect with experienced travelers!
+                        </small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Contact Creator (for non-creators) -->
+            {% if current_user.is_authenticated and current_user.id != group.creator_id %}
+            <div class="card shadow mt-4">
+                <div class="card-body text-center">
+                    <h5 class="mb-3">
+                        <i class="fas fa-envelope"></i> Questions about this trip?
+                    </h5>
+                    <p class="text-muted">Contact the group creator for more details</p>
+                    <a href="{{ url_for('contact_creator', group_id=group.id) }}" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Send Message
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

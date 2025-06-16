@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Travel Together{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5 fw-bold">Welcome back, {{ current_user.first_name }}!</h1>
+            <p class="lead text-muted">Manage your travel groups and discover new adventures</p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('create_group') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus"></i> Create New Group
+            </a>
+        </div>
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="row g-3 mb-5">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Groups Created</h5>
+                            <h2 class="display-6 fw-bold">{{ user_groups|length }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Groups Joined</h5>
+                            <h2 class="display-6 fw-bold">{{ joined_groups|length }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-handshake fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Total Trips</h5>
+                            <h2 class="display-6 fw-bold">{{ (user_groups|length) + (joined_groups|length) }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-plane fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- My Groups -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="fw-bold">My Groups</h3>
+                <span class="badge bg-primary">{{ user_groups|length }}</span>
+            </div>
+            
+            {% if user_groups %}
+                {% for group in user_groups %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="card-title">{{ group.title }}</h5>
+                                <p class="card-text text-muted">
+                                    <i class="fas fa-map-marker-alt"></i> {{ group.destination }}
+                                </p>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar"></i> 
+                                        {{ group.start_date.strftime('%b %d') }} - {{ group.end_date.strftime('%b %d, %Y') }}
+                                    </small>
+                                </p>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-light text-dark">{{ group.member_count }}/{{ group.max_members }}</span>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <a href="{{ url_for('view_group', group_id=group.id) }}" class="btn btn-sm btn-outline-primary">View</a>
+                            <a href="{{ url_for('edit_group', group_id=group.id) }}" class="btn btn-sm btn-outline-warning">Edit</a>
+                            <button class="btn btn-sm btn-outline-danger delete-btn" 
+                                    data-group-id="{{ group.id }}" 
+                                    data-group-title="{{ group.title }}">Delete</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-plus-circle fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No groups created yet</h5>
+                        <p class="text-muted">Start your journey by creating your first travel group</p>
+                        <a href="{{ url_for('create_group') }}" class="btn btn-primary">Create Your First Group</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Joined Groups -->
+        <div class="col-lg-6 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="fw-bold">Joined Groups</h3>
+                <span class="badge bg-success">{{ joined_groups|length }}</span>
+            </div>
+            
+            {% if joined_groups %}
+                {% for group in joined_groups %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="card-title">{{ group.title }}</h5>
+                                <p class="card-text text-muted">
+                                    <i class="fas fa-map-marker-alt"></i> {{ group.destination }}
+                                </p>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar"></i> 
+                                        {{ group.start_date.strftime('%b %d') }} - {{ group.end_date.strftime('%b %d, %Y') }}
+                                    </small>
+                                </p>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        {% if group.creator %}
+                                            Created by {{ group.creator.first_name }} {{ group.creator.last_name }}
+                                        {% else %}
+                                            Created by Unknown
+                                        {% endif %}
+                                    </small>
+                                </p>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-light text-dark">{{ group.member_count }}/{{ group.max_members }}</span>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <a href="{{ url_for('view_group', group_id=group.id) }}" class="btn btn-sm btn-outline-primary">View</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No groups joined yet</h5>
+                        <p class="text-muted">Discover amazing travel groups and join fellow adventurers</p>
+                        <a href="{{ url_for('browse_groups') }}" class="btn btn-success">Browse Groups</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle delete buttons
+    document.querySelectorAll('.delete-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const groupId = this.getAttribute('data-group-id');
+            const groupTitle = this.getAttribute('data-group-title');
+            
+            if (confirm(`Are you sure you want to delete "${groupTitle}"? This action cannot be undone and will remove all members.`)) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/delete_group/${groupId}`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

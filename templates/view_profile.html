@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.first_name }} {{ user.last_name }} - Travel Together{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Profile Sidebar -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <!-- Profile Picture -->
+                    <img src="{{ user.get_profile_picture_url() }}" 
+                         alt="Profile Picture" 
+                         class="rounded-circle mb-3"
+                         style="width: 150px; height: 150px; object-fit: cover;">
+                    
+                    <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+                    <p class="text-muted">@{{ user.username }}</p>
+                    
+                    {% if user.rating > 0 %}
+                    <div class="rating mb-2">
+                        {% for i in range(1, 6) %}
+                            {% if i <= user.rating %}
+                                <i class="fas fa-star text-warning"></i>
+                            {% else %}
+                                <i class="far fa-star text-muted"></i>
+                            {% endif %}
+                        {% endfor %}
+                        <span class="ms-2">{{ user.rating }}/5 ({{ user.total_reviews }} reviews)</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if user.location %}
+                    <p class="text-muted"><i class="fas fa-map-marker-alt"></i> {{ user.location }}</p>
+                    {% endif %}
+                    
+                    {% if user.get_age() %}
+                    <p class="text-muted"><i class="fas fa-birthday-cake"></i> {{ user.get_age() }} years old</p>
+                    {% endif %}
+                    
+                    {% if current_user.is_authenticated and current_user.id != user.id %}
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#messageModal">
+                            <i class="fas fa-envelope"></i> Send Message
+                        </button>
+                        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                            <i class="fas fa-star"></i> Write Review
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Travel Stats -->
+            <div class="card shadow mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">Travel Stats</h5>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-primary">{{ created_groups|length }}</h4>
+                                <small class="text-muted">Groups Created</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-info">{{ user.total_reviews }}</h4>
+                            <small class="text-muted">Reviews</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- About Section -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">About {{ user.first_name }}</h5>
+                    {% if user.bio %}
+                        <p>{{ user.bio }}</p>
+                    {% else %}
+                        <p class="text-muted">No bio available.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Travel Preferences -->
+            {% if user.travel_style or user.travel_experience or user.languages_spoken or user.travel_interests %}
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Travel Preferences</h5>
+                    <div class="row">
+                        {% if user.travel_style %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Travel Style:</strong>
+                            <span class="badge bg-primary ms-2">{{ user.travel_style }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.travel_experience %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Experience Level:</strong>
+                            <span class="badge bg-info ms-2">{{ user.travel_experience }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.languages_spoken %}
+                        <div class="col-12 mb-3">
+                            <strong>Languages Spoken:</strong>
+                            <p>{{ user.languages_spoken }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.travel_interests %}
+                        <div class="col-12 mb-3">
+                            <strong>Travel Interests:</strong>
+                            <p>{{ user.travel_interests }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Created Groups -->
+            {% if created_groups %}
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Groups Created by {{ user.first_name }}</h5>
+                    <div class="row">
+                        {% for group in created_groups %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ group.title }}</h6>
+                                    <p class="card-text text-muted">
+                                        <i class="fas fa-map-marker-alt"></i> {{ group.destination }}
+                                    </p>
+                                    <p class="card-text">
+                                        <small class="text-muted">{{ group.start_date.strftime('%b %d, %Y') }}</small>
+                                    </p>
+                                    <a href="{{ url_for('view_group', group_id=group.id) }}" class="btn btn-sm btn-outline-primary">
+                                        View Group
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Reviews -->
+            {% if reviews %}
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Reviews</h5>
+                    {% for review in reviews %}
+                    <div class="border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="rating">
+                                    {% for i in range(1, 6) %}
+                                        {% if i <= review.rating %}
+                                            <i class="fas fa-star text-warning"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-muted"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <p class="mt-2">{{ review.comment }}</p>
+                                <small class="text-muted">
+                                    by {{ review.reviewer.first_name }} {{ review.reviewer.last_name }}
+                                </small>
+                            </div>
+                            <small class="text-muted">{{ review.created_at.strftime('%b %d, %Y') }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Review Modal -->
+{% if current_user.is_authenticated and current_user.id != user.id %}
+<div class="modal fade" id="reviewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Write a Review for {{ user.first_name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_review', user_id=user.id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Rating</label>
+                        <div class="rating-input">
+                            {% for i in range(1, 6) %}
+                            <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}" required>
+                            <label for="star{{ i }}" class="star-label">
+                                <i class="fas fa-star"></i>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Comment (Optional)</label>
+                        <textarea class="form-control" id="comment" name="comment" rows="3" 
+                                  placeholder="Share your travel experience with {{ user.first_name }}..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.rating-input {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.rating-input input {
+    display: none;
+}
+
+.rating-input label {
+    color: #ddd;
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin: 0 2px;
+}
+
+.rating-input input:checked ~ label,
+.rating-input label:hover,
+.rating-input label:hover ~ label {
+    color: #ffc107;
+}
+</style>
+{% endif %}
+{% endblock %} 
