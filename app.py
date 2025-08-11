@@ -28,9 +28,7 @@ login_manager.login_view = 'login'
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# ========================================
-# VALIDATION FUNCTIONS
-# ========================================
+
 
 def validate_username(username):
     """Validate username with comprehensive rules"""
@@ -41,10 +39,10 @@ def validate_username(username):
         return errors
     
     # Length validation
-    if len(username) < 3:
-        errors.append("Username must be at least 3 characters long")
-    if len(username) > 20:
-        errors.append("Username must be no more than 20 characters long")
+    if len(username) < 5:
+        errors.append("Username must be at least 5 characters long")
+    if len(username) > 13:
+        errors.append("Username must be no more than 13 characters long")
     
     # Character validation - only alphanumeric and underscores
     if not re.match("^[a-zA-Z0-9_]+$", username):
@@ -1014,4 +1012,5 @@ if __name__ == '__main__':
         except Exception as e:
             print(f"Database error: {e}")
     
+
     app.run(debug=True)
