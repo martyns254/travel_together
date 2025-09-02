@@ -16,7 +16,7 @@ UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Create upload directory if it doesn't exist
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Initialize extensions
@@ -38,7 +38,7 @@ def validate_username(username):
         errors.append("Username is required")
         return errors
     
-    # Length validation
+    # Text Length validation
     if len(username) < 5:
         errors.append("Username must be at least 5 characters long")
     if len(username) > 13:
@@ -1014,3 +1014,4 @@ if __name__ == '__main__':
     
 
     app.run(debug=True)
+
