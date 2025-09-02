@@ -12,4 +12,5 @@ class Config:
     
     # Upload settings
     UPLOAD_FOLDER = 'static/images'
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
+
+    MAX_CONTENT_LENGTH = 24 * 1024 * 1024  # 24MB max file size
