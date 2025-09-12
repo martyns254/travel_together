@@ -293,7 +293,7 @@ Need help or have questions?
 
 - Thanks to all travelers who believe in the power of shared adventures
 - Inspired by the need for safer, more connected travel experiences
-- Built with ❤️ for the global travel community
+- Built with passion for the global travel community
 
 ---
 
